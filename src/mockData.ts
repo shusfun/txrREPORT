@@ -257,15 +257,15 @@ export const financeAccountRecords: FinanceAccountRecord[] = [
 ]
 
 export const financeInfoData: FinanceInfoData = {
-  totalAvailable: 3190.98,
-  accountAvailable: 3190.98,
-  sharedBalance: 0,
+  totalAvailable:0.00,
+  accountAvailable: 0.00,
+  sharedBalance: 0.00,
   statusText: '充足',
-  bidAvailable: 3190.98,
-  contractAvailable: 3190.98,
+  bidAvailable: 0.00,
+  contractAvailable: 0.00,
   lockedAmount: 0,
   budgetText: '不限',
-  rechargeFund: 3190.98,
+  rechargeFund:0.00,
   todayCost: 0,
 }
 
