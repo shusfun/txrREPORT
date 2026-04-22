@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import {
-  ArrowDown,
-} from "@element-plus/icons-vue";
+import { ArrowDown } from "@element-plus/icons-vue";
 import { LineChart, type LineSeriesOption } from "echarts/charts";
 import {
   GridComponent,
@@ -62,6 +60,7 @@ import {
   topNavItems,
   type AppPage,
 } from "./mockData";
+import { financeDailyRows } from "./ts/financeDailyRows";
 // import {financeDailyRows} from './ts/financeDailyRows';
 use([
   LineChart,
@@ -119,8 +118,8 @@ const overviewTrendSeries = [
     color: "#98D7FF",
     yAxisIndex: 0,
     data: [
-      182, 34, 12, 5, 18, 0, 0, 0, 0, 24, 0, 12, 0, 0, 14, 0, 0, 0, 0, 0, 0,
-      8, 0, 0,
+      182, 34, 12, 5, 18, 0, 0, 0, 0, 24, 0, 12, 0, 0, 14, 0, 0, 0, 0, 0, 0, 8,
+      0, 0,
     ],
   },
   {
@@ -128,8 +127,8 @@ const overviewTrendSeries = [
     color: "#FFAE19",
     yAxisIndex: 1,
     data: [
-      5.4, 1.2, 0.1, 0, 0, 0, 2.8, 0, 0, 0, 3.2, 0, 0, 2.0, 3.8, 0, 0.6, 0,
-      0.6, 0, 4.2, 0.8, 3.0, 0.1,
+      5.4, 1.2, 0.1, 0, 0, 0, 2.8, 0, 0, 0, 3.2, 0, 0, 2.0, 3.8, 0, 0.6, 0, 0.6,
+      0, 4.2, 0.8, 3.0, 0.1,
     ],
   },
   {
@@ -168,28 +167,17 @@ const reportMetricCards = [
 ];
 const reportTableActions = ["自定义列", "下载", "版位细分"];
 const financeRecordHeaders = [
-  "记录类型",
-  "日期",
-  "资金类型",
-  "资金账户名称",
-  "操作类型",
-  "业务类型",
-  "收支类型",
-  "金额(元)",
-  "订单号",
-  "备注",
+  "充值时间",
+  "账户ID",
+  "客户名称",
+  "业务平台",
+  "充值金额(元)",
+  "充值撤销金额(元)",
+  "实际充值金额(元)",
+  "充值状态",
 ];
 const financeRecordColumnWidths = [
-  228,
-  242,
-  120,
-  120,
-  100,
-  242,
-  100,
-  100,
-  248,
-  362,
+  228, 242, 120, 120, 100, 242, 100, 100, 248, 362,
 ];
 const financeRecordMonthRangeMap: Record<string, string> = {
   "02": "2025-01-01 至 2025-02-28",
@@ -214,7 +202,9 @@ const financeRecordMonth = computed(() => {
 });
 
 const financeRecordRows = computed(() =>
-  financeAccountRecords.filter((item) => item.month === financeRecordMonth.value),
+  financeAccountRecords.filter(
+    (item) => item.month === financeRecordMonth.value,
+  ),
 );
 
 const financeRecordDateRangeText = computed(
@@ -297,7 +287,10 @@ const profileSectionsResolved = computed(() =>
       if (item.label === "行业资质图片") {
         return {
           ...item,
-          images: [industryQualificationBackImage, industryQualificationFrontImage],
+          images: [
+            industryQualificationBackImage,
+            industryQualificationFrontImage,
+          ],
         };
       }
 
@@ -623,11 +616,19 @@ onBeforeUnmount(() => {
             class="header-action-btn header-action-btn--feedback"
             title="反馈"
           >
-            <img :src="headerFeedbackIcon" alt="" class="header-action-btn__icon" />
+            <img
+              :src="headerFeedbackIcon"
+              alt=""
+              class="header-action-btn__icon"
+            />
           </button>
           <button type="button" class="header-pill-action" title="通知">
             <span class="header-pill-action__icon-wrap">
-              <img :src="headerBellIcon" alt="" class="header-pill-action__icon" />
+              <img
+                :src="headerBellIcon"
+                alt=""
+                class="header-pill-action__icon"
+              />
               <span class="header-pill-action__badge">8</span>
             </span>
           </button>
@@ -637,18 +638,30 @@ onBeforeUnmount(() => {
             title="资金"
           >
             <span class="header-pill-action__icon-wrap">
-              <img :src="headerCoinIcon" alt="" class="header-pill-action__icon" />
+              <img
+                :src="headerCoinIcon"
+                alt=""
+                class="header-pill-action__icon"
+              />
             </span>
           </button>
           <button type="button" class="header-link-action" title="帮助">
-            <img :src="headerHelpIcon" alt="" class="header-link-action__icon" />
+            <img
+              :src="headerHelpIcon"
+              alt=""
+              class="header-link-action__icon"
+            />
           </button>
           <button
             type="button"
             class="header-link-action header-link-action--mobile"
             title="小程序和公众号"
           >
-            <img :src="headerMobileIcon" alt="" class="header-link-action__icon" />
+            <img
+              :src="headerMobileIcon"
+              alt=""
+              class="header-link-action__icon"
+            />
           </button>
           <span class="header-actions__divider"></span>
 
@@ -664,9 +677,6 @@ onBeforeUnmount(() => {
               <a href="javascript:;" role="button" class="account-trigger">
                 <div class="account-trigger__text">
                   <span class="account-trigger__name">{{ companyName }}</span>
-                  <small class="account-trigger__uid">
-                    <span class="account-trigger__id">ID:55779817</span>
-                  </small>
                 </div>
                 <span class="account-trigger__arrow"></span>
               </a>
@@ -716,7 +726,10 @@ onBeforeUnmount(() => {
                       <span>{{ companyName }}</span>
                       <small>ID: 55779817</small>
                     </div>
-                    <span class="account-item__status" aria-hidden="true"></span>
+                    <span
+                      class="account-item__status"
+                      aria-hidden="true"
+                    ></span>
                   </div>
                   <button
                     class="account-item"
@@ -727,7 +740,7 @@ onBeforeUnmount(() => {
                       <span>{{ companyName }}</span>
                       <small>ID: 36716648</small>
                     </div>
-                    <span class="account-item__action">切换账户</span>
+                    <!-- <span class="account-item__action">切换账户</span> -->
                   </button>
                 </div>
 
@@ -759,7 +772,9 @@ onBeforeUnmount(() => {
           <div class="spaui-alert-title">
             <div class="top-alert__row">
               <div class="top-alert__primary">
-                <span class="top-alert__text">「AIM+」重磅上线，智能投放实现极简投放&跑量突破！</span>
+                <span class="top-alert__text"
+                  >「AIM+」重磅上线，智能投放实现极简投放&跑量突破！</span
+                >
                 <span class="top-alert__divider" aria-hidden="true"></span>
                 <a
                   class="top-alert__link"
@@ -772,7 +787,9 @@ onBeforeUnmount(() => {
                 <span class="top-alert__divider" aria-hidden="true"></span>
               </div>
               <div class="top-alert__secondary">
-                <span class="top-alert__comment">具体活动规则请联系运营经理</span>
+                <span class="top-alert__comment"
+                  >具体活动规则请联系运营经理</span
+                >
                 <span class="top-alert__divider" aria-hidden="true"></span>
               </div>
             </div>
@@ -809,7 +826,9 @@ onBeforeUnmount(() => {
                   <i class="hero-manage__icon logo-partner"></i>
                 </span>
                 <span class="hero-manage__content">
-                  <span class="hero-manage__text">为账户设置托管功能，让管理更轻松</span>
+                  <span class="hero-manage__text"
+                    >为账户设置托管功能，让管理更轻松</span
+                  >
                   <el-icon class="hero-manage__arrow"><ArrowDown /></el-icon>
                 </span>
               </button>
@@ -821,7 +840,7 @@ onBeforeUnmount(() => {
                 :key="item.label"
                 class="hero-metric"
                 :class="`hero-metric--${index + 1}`"
-                >
+              >
                 <div class="hero-metric__icon">
                   <img
                     :src="heroMetricIcons[index]"
@@ -832,10 +851,9 @@ onBeforeUnmount(() => {
                 <div class="hero-metric__content">
                   <div class="hero-metric__title-row">
                     <p>{{ item.label }}</p>
-                    <span
-                      v-if="index === 0"
-                      class="hero-metric__status"
-                    >充足｜还可消耗7天以上</span>
+                    <span v-if="index === 0" class="hero-metric__status"
+                      >充足｜还可消耗7天以上</span
+                    >
                   </div>
                   <div class="hero-metric__value-row">
                     <strong>{{ item.value }}</strong>
@@ -848,19 +866,20 @@ onBeforeUnmount(() => {
                     >
                       充值
                     </a>
-                    <div
-                      v-if="index === 2"
-                      class="hero-metric__actions"
-                    >
+                    <div v-if="index === 2" class="hero-metric__actions">
                       <a href="javascript:;" class="hero-metric__link">修改</a>
-                      <a href="javascript:;" class="hero-metric__link hero-metric__link--button">设置次日预算</a>
+                      <a
+                        href="javascript:;"
+                        class="hero-metric__link hero-metric__link--button"
+                        >设置次日预算</a
+                      >
                     </div>
                   </div>
-                  <span
-                    v-if="index === 0"
-                    class="hero-metric__tag"
-                  >
-                    <span class="hero-metric__tag-icon" aria-hidden="true"></span>
+                  <span v-if="index === 0" class="hero-metric__tag">
+                    <span
+                      class="hero-metric__tag-icon"
+                      aria-hidden="true"
+                    ></span>
                     锁定金额 0.00元
                   </span>
                 </div>
@@ -946,7 +965,9 @@ onBeforeUnmount(() => {
                     class="left carousel-control default-arrow"
                     href="javascript:;"
                     aria-label="上一张"
-                    @click.prevent="setActivePromotion(activePromotionIndex - 1)"
+                    @click.prevent="
+                      setActivePromotion(activePromotionIndex - 1)
+                    "
                   >
                     <svg
                       width="24"
@@ -970,7 +991,9 @@ onBeforeUnmount(() => {
                     class="right carousel-control default-arrow"
                     href="javascript:;"
                     aria-label="下一张"
-                    @click.prevent="setActivePromotion(activePromotionIndex + 1)"
+                    @click.prevent="
+                      setActivePromotion(activePromotionIndex + 1)
+                    "
                   >
                     <svg
                       width="24"
@@ -1092,7 +1115,9 @@ onBeforeUnmount(() => {
                     class="report-nav-item report-nav-item--first"
                     :class="{
                       'report-nav-item--current': group.active,
-                      'report-nav-item--with-arrow': Boolean(group.children?.length),
+                      'report-nav-item--with-arrow': Boolean(
+                        group.children?.length,
+                      ),
                       'report-nav-item--with-icon': true,
                       [`report-nav-item--${group.key}`]: true,
                     }"
@@ -1148,7 +1173,10 @@ onBeforeUnmount(() => {
                       @click="openRetiredModal"
                     >
                       <span>{{ chip }}</span>
-                      <span class="report-chip__arrow" aria-hidden="true"></span>
+                      <span
+                        class="report-chip__arrow"
+                        aria-hidden="true"
+                      ></span>
                     </button>
                     <button
                       type="button"
@@ -1186,8 +1214,14 @@ onBeforeUnmount(() => {
                   >
                     <span class="report-filter-tag__desc">广告:</span>
                     <span class="report-filter-tag__text">请选择</span>
-                    <span class="report-filter-tag__arrow" aria-hidden="true"></span>
-                    <span class="report-filter-tag__close" aria-hidden="true"></span>
+                    <span
+                      class="report-filter-tag__arrow"
+                      aria-hidden="true"
+                    ></span>
+                    <span
+                      class="report-filter-tag__close"
+                      aria-hidden="true"
+                    ></span>
                   </button>
                 </div>
               </section>
@@ -1200,7 +1234,10 @@ onBeforeUnmount(() => {
                     class="report-card__link"
                     @click="openRetiredModal"
                   >
-                    <span class="report-card__link-icon" aria-hidden="true"></span>
+                    <span
+                      class="report-card__link-icon"
+                      aria-hidden="true"
+                    ></span>
                     自定义展示指标
                   </button>
                 </div>
@@ -1228,7 +1265,10 @@ onBeforeUnmount(() => {
                     class="report-expand-btn"
                     @click="openRetiredModal"
                   >
-                    <span class="report-expand-btn__icon" aria-hidden="true"></span>
+                    <span
+                      class="report-expand-btn__icon"
+                      aria-hidden="true"
+                    ></span>
                     <span>展开趋势图</span>
                   </button>
                 </div>
@@ -1288,9 +1328,7 @@ onBeforeUnmount(() => {
                       {{ header }}
                     </div>
                   </div>
-                  <div class="report-table__empty">
-                    抱歉，暂无相关数据记录
-                  </div>
+                  <div class="report-table__empty">抱歉，暂无相关数据记录</div>
                 </div>
               </section>
             </div>
@@ -1315,7 +1353,9 @@ onBeforeUnmount(() => {
               <button
                 type="button"
                 class="finance-tabs__item"
-                :class="{ 'finance-tabs__item--active': financeTab === 'records' }"
+                :class="{
+                  'finance-tabs__item--active': financeTab === 'records',
+                }"
                 @click="handleFinanceTabSelect('records')"
               >
                 财务记录
@@ -1472,7 +1512,9 @@ onBeforeUnmount(() => {
               <section class="finance-record-card">
                 <div class="finance-record-card__head">
                   <ul class="finance-record-card__tabnav">
-                    <li class="finance-record-card__tab finance-record-card__tab--active">
+                    <li
+                      class="finance-record-card__tab finance-record-card__tab--active"
+                    >
                       <a>记录列表</a>
                     </li>
                   </ul>
@@ -1577,51 +1619,54 @@ onBeforeUnmount(() => {
                         </thead>
                         <tbody>
                           <tr
-                            v-for="item in financeRecordRows"
+                            v-for="item in financeDailyRows"
                             :key="item.id"
                             class="finance-record-table__row"
                           >
                             <td>
                               <div class="finance-record-table__body-cell">
-                                {{ item.recordType }}
+                                {{ item.rechargeTime }}
                               </div>
                             </td>
                             <td>
                               <div class="finance-record-table__body-cell">
-                                {{ item.date }}
+                                {{ item.accountId }}
                               </div>
                             </td>
                             <td>
                               <div class="finance-record-table__body-cell">
-                                {{ item.fundType }}
+                                {{ item.accountName }}
                               </div>
                             </td>
                             <td>
                               <div class="finance-record-table__body-cell">
-                                {{ item.fundAccountName }}
+                                {{ item.businessPlatform }}
                               </div>
                             </td>
                             <td>
                               <div class="finance-record-table__body-cell">
-                                {{ item.operationType }}
+                                {{ item.balance }}
                               </div>
                             </td>
                             <td>
                               <div class="finance-record-table__body-cell">
-                                {{ item.businessType }}
+                                0.00
                               </div>
                             </td>
                             <td>
                               <div class="finance-record-table__body-cell">
-                                {{ item.incomeType }}
+                                {{ item.balance }}
                               </div>
                             </td>
                             <td>
                               <div class="finance-record-table__body-cell">
-                                {{ formatCurrency(item.amount) }}
+                                <span class="recharge-status">
+                                  <i></i>
+                                  {{ item.status }}
+                                </span>
                               </div>
                             </td>
-                            <td>
+                            <!-- <td>
                               <div
                                 class="finance-record-table__body-cell finance-record-table__body-cell--multiline"
                               >
@@ -1634,7 +1679,7 @@ onBeforeUnmount(() => {
                               >
                                 {{ item.remark }}
                               </div>
-                            </td>
+                            </td> -->
                           </tr>
                           <tr
                             v-if="!financeRecordRows.length"
@@ -1658,7 +1703,9 @@ onBeforeUnmount(() => {
                     <span>本页总计数据:</span>
                     <span>
                       收入
-                      <strong>{{ formatCurrency(financeRecordIncomeTotal) }}</strong>
+                      <strong>{{
+                        formatCurrency(financeRecordIncomeTotal)
+                      }}</strong>
                       元
                     </span>
                     <span>支出 <strong>0.00</strong> 元</span>
@@ -1668,7 +1715,9 @@ onBeforeUnmount(() => {
                     v-if="financeRecordRows.length"
                     class="finance-record-pagination"
                   >
-                    <span>共 {{ financeRecordRows.length }} 条记录，每页显示</span>
+                    <span
+                      >共 {{ financeRecordRows.length }} 条记录，每页显示</span
+                    >
                     <span class="finance-record-pagination__size">20</span>
                     <span>条 共 1 页</span>
                   </div>
@@ -1695,7 +1744,9 @@ onBeforeUnmount(() => {
 
             <div class="profile-audit-bar">
               <span class="profile-audit-bar__icon" aria-hidden="true"></span>
-              <span class="profile-audit-bar__text">{{ profileAuditStatusText }}</span>
+              <span class="profile-audit-bar__text">{{
+                profileAuditStatusText
+              }}</span>
             </div>
 
             <section class="profile-card">
@@ -1731,11 +1782,15 @@ onBeforeUnmount(() => {
                     >
                       <div class="profile-field__label">{{ item.label }}</div>
                       <div class="profile-field__value">
-                        <template v-if="item.type === 'image' && item.images?.length">
+                        <template
+                          v-if="item.type === 'image' && item.images?.length"
+                        >
                           <button
                             type="button"
                             class="profile-image-trigger"
-                            @click="openImagePreview(item.images[0], item.label)"
+                            @click="
+                              openImagePreview(item.images[0], item.label)
+                            "
                           >
                             <img
                               :src="item.images[0]"
@@ -1746,7 +1801,9 @@ onBeforeUnmount(() => {
                         </template>
 
                         <template
-                          v-else-if="item.type === 'image-list' && item.images?.length"
+                          v-else-if="
+                            item.type === 'image-list' && item.images?.length
+                          "
                         >
                           <div class="profile-image-list">
                             <button
@@ -1755,7 +1812,10 @@ onBeforeUnmount(() => {
                               type="button"
                               class="profile-image-trigger"
                               @click="
-                                openImagePreview(image, `${item.label}${index + 1}`)
+                                openImagePreview(
+                                  image,
+                                  `${item.label}${index + 1}`,
+                                )
                               "
                             >
                               <img
@@ -1779,7 +1839,10 @@ onBeforeUnmount(() => {
                                 type="button"
                                 class="profile-warning-box__doc"
                                 @click="
-                                  openImagePreview(image, `${item.label}${index + 1}`)
+                                  openImagePreview(
+                                    image,
+                                    `${item.label}${index + 1}`,
+                                  )
                                 "
                               >
                                 <img
@@ -1802,7 +1865,9 @@ onBeforeUnmount(() => {
                         </template>
 
                         <template v-else>
-                          <div class="profile-field__text">{{ item.value }}</div>
+                          <div class="profile-field__text">
+                            {{ item.value }}
+                          </div>
                         </template>
                       </div>
                     </div>
