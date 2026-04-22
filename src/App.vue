@@ -21,11 +21,9 @@ import {
   watch,
 } from "vue";
 import router from "./router";
-import businessLicenseImage from "./assets/2a43ad53308d3137a107152a1e0427d9.jpg";
+import businessLicenseImage from "./assets/图片2.png";
 import idBackImage from "./assets/2d7688680e51f0fb0e281d591d35d251.jpg";
 import idFrontImage from "./assets/10cd20478d3bf70c98e086cb115cce78.jpg";
-import industryQualificationBackImage from "./assets/50707948038e72710eb0e36ab40948f5.jpg";
-import industryQualificationFrontImage from "./assets/e386e28948881acd0c3f6a2cb6fb0c5e.png";
 import accountBudgetIcon from "./assets/icons/icon-account-budget.svg";
 import accountCostIcon from "./assets/icons/icon-account-cost.svg";
 import accountMoneyIcon from "./assets/icons/icon-account-balance.svg";
@@ -35,7 +33,7 @@ import headerBellIcon from "./assets/icons/header-bell.svg";
 import headerCoinIcon from "./assets/icons/header-coin.svg";
 import headerFeedbackIcon from "./assets/icons/header-feedback.svg";
 import headerHelpIcon from "./assets/icons/header-help.svg";
-import headerLogoUrl from "./assets/icons/ams-logo-live.svg";
+import headerLogoUrl from "./assets/图片1.jpg";
 import headerMobileIcon from "./assets/icons/header-mobile.svg";
 import qFeedbackEntryLogo from "./assets/icons/q-feedback-entry-logo.png";
 import reportDateIcon from "./assets/icons/report/report-date.svg";
@@ -60,8 +58,6 @@ import {
   topNavItems,
   type AppPage,
 } from "./mockData";
-import { financeDailyRows } from "./ts/financeDailyRows";
-// import {financeDailyRows} from './ts/financeDailyRows';
 use([
   LineChart,
   GridComponent,
@@ -192,27 +188,6 @@ const financeRecordHeaders = [
   "实际充值金额(元)",
   "充值状态",
 ];
-const financeRecordMonthRangeMap: Record<string, string> = {
-  "02": "2025-01-01 至 2025-02-28",
-  "08": "2025-08-01 至 2025-08-31",
-  "09": "2025-09-01 至 2025-09-30",
-};
-const augustFinanceRecordDisplayRow: FinanceRecordDisplayRow = {
-  id: "08-special",
-  rechargeTime: "2026-01-13 00:00:00",
-  accountId: "55779817",
-  accountName: "昆明佳运科技有限公司",
-  businessPlatform: "巨量引擎",
-  rechargeAmount: 3002.77,
-  revokedAmount: 0,
-  actualAmount: 3002.77,
-  status: "充值成功",
-};
-
-function parseDateRangeText(text: string): DateRangeValue {
-  const [start = "", end = ""] = text.split(" 至 ").map((item) => item.trim());
-  return [start, end];
-}
 
 function formatDateRangeText(range: DateRangeValue) {
   const [start, end] = range;
@@ -223,72 +198,43 @@ function normalizeDateValue(value: string) {
   return value.slice(0, 10);
 }
 
+function resolveDateRange(values: string[]): DateRangeValue {
+  const normalizedValues = values
+    .map((value) => normalizeDateValue(value))
+    .filter(Boolean)
+    .sort();
+
+  if (!normalizedValues.length) {
+    return ["", ""];
+  }
+
+  return [
+    normalizedValues[0],
+    normalizedValues[normalizedValues.length - 1],
+  ];
+}
+
 function isDateInRange(value: string, range: DateRangeValue) {
   const [start, end] = range;
   const target = normalizeDateValue(value);
   return (!start || target >= start) && (!end || target <= end);
 }
 
-function rangeHitsMonth(range: DateRangeValue, month: number) {
-  const [start, end] = range;
-  if (!start || !end) return false;
-
-  const startDate = new Date(`${start}T00:00:00`);
-  const endDate = new Date(`${end}T00:00:00`);
-  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-    return false;
-  }
-
-  const startIndex = startDate.getFullYear() * 12 + startDate.getMonth();
-  const endIndex = endDate.getFullYear() * 12 + endDate.getMonth();
-  const targetMonthIndex = month - 1;
-
-  for (let current = startIndex; current <= endIndex; current += 1) {
-    if (current % 12 === targetMonthIndex) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 const overviewDateRange = ref<DateRangeValue>([
   "2025-04-30",
   "2026-03-13",
 ]);
-const reportDateRange = ref<DateRangeValue>([
-  recentReportRows[0]?.date ?? "",
-  recentReportRows[recentReportRows.length - 1]?.date ?? "",
-]);
+const reportDateRange = ref<DateRangeValue>(
+  resolveDateRange(recentReportRows.map((item) => item.date)),
+);
 const financeRecordDateRange = ref<DateRangeValue>(
-  parseDateRangeText(financeRecordMonthRangeMap["02"]),
+  resolveDateRange(financeAccountRecords.map((item) => item.date)),
 );
 
 const currentPage = computed<AppPage>(() => {
   const routeName = router.currentRoute.value.name;
   return typeof routeName === "string" ? (routeName as AppPage) : "overview";
 });
-
-const financeRecordMonth = computed(() => {
-  const monthQuery = router.currentRoute.value.query.month;
-  if (
-    typeof monthQuery === "string" &&
-    financeRecordMonthRangeMap[monthQuery]
-  ) {
-    return monthQuery;
-  }
-  return "02";
-});
-
-watch(
-  financeRecordMonth,
-  (month) => {
-    financeRecordDateRange.value = parseDateRangeText(
-      financeRecordMonthRangeMap[month] ?? financeRecordMonthRangeMap["02"],
-    );
-  },
-  { immediate: true },
-);
 
 const financeRecordRows = computed(() =>
   financeAccountRecords.filter((item) =>
@@ -297,21 +243,17 @@ const financeRecordRows = computed(() =>
 );
 
 const financeRecordDisplayRows = computed<FinanceRecordDisplayRow[]>(() => {
-  if (rangeHitsMonth(financeRecordDateRange.value, 8)) {
-    return [augustFinanceRecordDisplayRow];
-  }
-
-  return financeDailyRows.map((item) => ({
-      id: String(item.id),
-      rechargeTime: item.rechargeTime,
-      accountId: item.accountId,
-      accountName: item.accountName,
-      businessPlatform: item.businessPlatform,
-      rechargeAmount: Number(item.balance),
-      revokedAmount: 0,
-      actualAmount: Number(item.balance),
-      status: item.status,
-    }));
+  return financeRecordRows.value.map((item) => ({
+    id: item.id,
+    rechargeTime: item.date,
+    accountId: item.accountId,
+    accountName: item.accountName,
+    businessPlatform: item.businessPlatform,
+    rechargeAmount: item.rechargeAmount,
+    revokedAmount: item.revokedAmount,
+    actualAmount: item.actualAmount,
+    status: item.status,
+  }));
 });
 
 const financeRecordDateRangeText = computed(() =>
@@ -415,23 +357,6 @@ const profileSectionsResolved = computed(() =>
         return {
           ...item,
           images: [idFrontImage, idBackImage],
-        };
-      }
-
-      if (item.label === "行业资质图片") {
-        return {
-          ...item,
-          images: [
-            industryQualificationBackImage,
-            industryQualificationFrontImage,
-          ],
-        };
-      }
-
-      if (item.label === "行业资质详情") {
-        return {
-          ...item,
-          images: [industryQualificationBackImage],
         };
       }
 
@@ -1203,19 +1128,14 @@ onBeforeUnmount(() => {
                       class="item"
                       :class="{ active: index === activePromotionIndex }"
                     >
-                      <a
-                        class="news-hero"
-                        :href="item.href"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
+                      <div class="news-hero">
                         <img
                           :src="item.imageSrc"
                           :alt="item.title"
                           class="news-hero__image"
                         />
                         <p class="spaui-carousel-label">{{ item.title }}</p>
-                      </a>
+                      </div>
                     </div>
                   </div>
 
@@ -1620,7 +1540,7 @@ onBeforeUnmount(() => {
                       class="report-table__row"
                     >
                       <div class="report-table__cell">{{ row.date }}</div>
-                      <div class="report-table__cell">竞价-展示广告</div>
+                      <div class="report-table__cell">{{ row.adName }}</div>
                       <div class="report-table__cell">
                         {{ formatNumber(row.impressions) }}
                       </div>
@@ -2156,16 +2076,25 @@ onBeforeUnmount(() => {
                           "
                         >
                           <div class="profile-image-list">
-                            <button
+                            <component
                               v-for="(image, index) in item.images"
                               :key="image"
-                              type="button"
+                              :is="
+                                item.label === '法人身份证件' ? 'div' : 'button'
+                              "
+                              :type="
+                                item.label === '法人身份证件'
+                                  ? undefined
+                                  : 'button'
+                              "
                               class="profile-image-trigger"
                               @click="
-                                openImagePreview(
-                                  image,
-                                  `${item.label}${index + 1}`,
-                                )
+                                item.label === '法人身份证件'
+                                  ? undefined
+                                  : openImagePreview(
+                                      image,
+                                      `${item.label}${index + 1}`,
+                                    )
                               "
                             >
                               <img
@@ -2173,7 +2102,7 @@ onBeforeUnmount(() => {
                                 :alt="`${item.label}${index + 1}`"
                                 class="profile-image-trigger__img"
                               />
-                            </button>
+                            </component>
                           </div>
                         </template>
 
@@ -2208,9 +2137,6 @@ onBeforeUnmount(() => {
                         <template v-else-if="section.title === '联系人信息'">
                           <div class="profile-contact">
                             <span>{{ item.value }}</span>
-                            <span class="profile-contact__status">{{
-                              profileAuditStatusText
-                            }}</span>
                           </div>
                         </template>
 

@@ -83,6 +83,8 @@ body {
   width: 36px;
   height: 20px;
   flex: 0 0 auto;
+  display: block;
+  object-fit: contain;
 }
 
 .brand-logo--small {
@@ -516,11 +518,12 @@ body {
 
 .page-content--overview {
   width: min(1520px, calc(100% - 32px));
+  margin: 12px auto;
 }
 
 .page-content--report {
-  width: min(1726px, calc(100vw - 20px));
-  margin: 12px 20px 0 0;
+  width: 100%;
+  margin: 12px 0 0;
 }
 
 .page-content--finance {
@@ -1396,6 +1399,7 @@ body {
   display: grid;
   grid-template-columns: 188px minmax(0, 1fr);
   gap: 16px;
+  padding-right: 20px;
   align-items: start;
 }
 
@@ -1615,10 +1619,7 @@ body {
 .report-main {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  /* width: 1522px; */
-  /* max-width: 100%;
-  wi */
-  /* width: 100%; */
+  width: 100%;
   gap: 12px;
   min-width: 0;
   align-self: start;
@@ -1827,6 +1828,7 @@ body {
 }
 
 .report-trend-card {
+  width: 100%;
   height: 311px;
   padding: 0 20px 24px;
 }
@@ -1946,6 +1948,7 @@ body {
 .report-trend-card__plot {
   position: relative;
   display: flex;
+  width: 100%;
   align-items: flex-start;
   margin-top: 16px;
   height: 164px;
@@ -1955,6 +1958,8 @@ body {
 }
 
 .report-trend-chart {
+  flex: 1 1 auto;
+  min-width: 0;
   width: 100%;
   height: 100%;
 }
@@ -2849,12 +2854,16 @@ body {
 }
 
 .finance-record-table-scroll {
+  max-height: 258px;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .finance-record-table-scroll::-webkit-scrollbar {
-  height: 12px;
+  width: 0;
+  height: 0;
 }
 
 .finance-record-table-scroll::-webkit-scrollbar-track {

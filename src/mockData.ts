@@ -3,6 +3,7 @@ import newsHeroLive2 from "./assets/news-hero-live-2.jpg"
 import newsHeroLive3 from "./assets/news-hero-live-3.jpg"
 import newsHeroLive4 from "./assets/news-hero-live-4.jpg"
 import newsHeroLive5 from "./assets/news-hero-live-5.jpg"
+import { excelReportRows } from "./ts/excelReportRows"
 
 export type AppPage = 'overview' | 'report' | 'financeInfo' | 'financeRecords' | 'profile'
 
@@ -43,10 +44,12 @@ export interface MonthlyTrendItem {
 
 export interface ReportRow {
   date: string
+  adName: string
   impressions: number
   clicks: number
   cost: number
   balance: number
+  rechargeRecord?: string
 }
 
 export interface FinanceRecord {
@@ -62,15 +65,20 @@ export interface FinanceRecord {
 
 export interface FinanceAccountRecord {
   id: string
-  month: string
   date: string
+  accountId: string
+  accountName: string
+  businessPlatform: string
   recordType: string
   fundType: string
   fundAccountName: string
   operationType: string
   businessType: string
   incomeType: string
-  amount: number
+  rechargeAmount: number
+  revokedAmount: number
+  actualAmount: number
+  status: string
   orderId: string
   remark: string
 }
@@ -114,7 +122,7 @@ export interface ProfileSection {
   items: ProfileSectionItem[]
 }
 
-export const companyName = '昆明佳运科技有限公司'
+export const companyName = '云南复印机研院'
 export const externalPlatformUrl = 'https://ad.oceanengine.com/'
 export const retiredMessage = '该账户已清退暂不支持查看，请尽快迁移至巨量本地推投放线索。'
 
@@ -133,32 +141,32 @@ export const summaryMetrics: SummaryMetric[] = [
   { label: '曝光次数', value: 432652, suffix: '', tone: 'primary' },
   { label: '点击次数', value: 5235, suffix: '', tone: 'accent' },
   { label: '点击率', value: 1.21, suffix: '%', tone: 'primary' },
-  { label: '花费', value:23974.34, suffix: '', tone: 'warm' },
+  { label: '花费', value: 0, suffix: '', tone: 'warm' },
 ]
 
 export const heroMetrics: HeroMetric[] = [
-  { label: '账户余额(元)', value: '3,190.98', tip: '锁定金额 0.00 元' },
+  { label: '账户余额(元)', value: '0.00', tip: '锁定金额 0.00 元' },
   { label: '今日竞价广告花费(元)', value: '0.00', },
-  { label: '竞价广告账户日预算(元/天)', value: '不限',  },
+  { label: '竞价广告账户日预算(元/天)', value: '0.00',  },
 ]
 
-export const monthlyTrend: MonthlyTrendItem[] = [
-  { month: '04-17', impressions: 78, clicks: 3, cost: 10.76, endBalance: 3190.98 },
-  { month: '04-18', impressions: 68, clicks: 1, cost: 5.62, endBalance: 3190.98 },
-  { month: '04-19', impressions: 133, clicks: 2, cost: 3.03, endBalance: 3190.98 },
-  { month: '04-20', impressions: 100, clicks: 1, cost: 4.92, endBalance: 3190.98 },
-  { month: '04-21', impressions: 85, clicks: 0, cost: 1.09, endBalance: 3190.98 },
-  { month: '04-22', impressions: 17, clicks: 0, cost: 0.43, endBalance: 3190.98 },
-]
+export const monthlyTrend: MonthlyTrendItem[] = excelReportRows.map((item) => ({
+  month: item.date.slice(5),
+  impressions: item.impressions,
+  clicks: item.clicks,
+  cost: item.cost,
+  endBalance: item.balance,
+}))
 
-export const recentReportRows: ReportRow[] = [
-  { date: '2025-04-17', impressions: 78, clicks: 3, cost: 10.76, balance: 3190.98 },
-  { date: '2025-04-18', impressions: 68, clicks: 1, cost: 5.62, balance: 3190.98 },
-  { date: '2025-04-19', impressions: 133, clicks: 2, cost: 3.03, balance: 3190.98 },
-  { date: '2025-04-20', impressions: 100, clicks: 1, cost: 4.92, balance: 3190.98 },
-  { date: '2025-04-21', impressions: 85, clicks: 0, cost: 1.09, balance: 3190.98 },
-  { date: '2025-04-22', impressions: 17, clicks: 0, cost: 0.43, balance: 3190.98 },
-]
+export const recentReportRows: ReportRow[] = excelReportRows.map((item) => ({
+  date: item.date,
+  adName: item.adName,
+  impressions: item.impressions,
+  clicks: item.clicks,
+  cost: item.cost,
+  balance: item.balance,
+  rechargeRecord: item.rechargeRecord,
+}))
 
 export const rechargeRecords: FinanceRecord[] = [
   {
@@ -195,64 +203,84 @@ export const rechargeRecords: FinanceRecord[] = [
 
 export const financeAccountRecords: FinanceAccountRecord[] = [
   {
-    id: '02-1',
-    month: '02',
-    date: '2025-02-14 16:26:06',
+    id: '09-2',
+    date: '2025-09-29 12:45:22',
+    accountId: '1798665300035692',
+    accountName: '昆明佳运科技有限公司',
+    businessPlatform: '巨量引擎',
     recordType: '资金账户记录',
     fundType: '广告充值金',
     fundAccountName: '广告充值金',
     operationType: '转账',
     businessType: '服务商转账（转入）',
     incomeType: '收入',
-    amount: 5000,
-    orderId: 'qdt-t-0-8907271-55779817-16171355696-46',
+    rechargeAmount: 5000,
+    revokedAmount: 0,
+    actualAmount: 5000,
+    status: '充值成功',
+    orderId: 'qdt-t-0-8907271-1798665300035692-01',
     remark:
-      '转账 - 由云南猎贝和众传媒发展有限公司（8907271）到 云南小沙新材料科技有限公司（55779817）',
-  },
-  {
-    id: '08-1',
-    month: '08',
-    date: '2025-08-05 09:42:59',
-    recordType: '资金账户记录',
-    fundType: '广告充值金',
-    fundAccountName: '广告充值金',
-    operationType: '转账',
-    businessType: '服务商转账（转入）',
-    incomeType: '收入',
-    amount: 3000,
-    orderId: 'qdt-t-0-8907271-55779817-16171355696-47',
-    remark:
-      '转账 - 由云南猎贝和众传媒发展有限公司（8907271）到 昆明佳运科技有限公司（55779817）',
+      '转账 - 由服务商账户转入 昆明佳运科技有限公司（1798665300035692）',
   },
   {
     id: '09-1',
-    month: '09',
     date: '2025-09-09 21:45:44',
+    accountId: '1798665300035692',
+    accountName: '昆明佳运科技有限公司',
+    businessPlatform: '巨量引擎',
     recordType: '资金账户记录',
     fundType: '广告充值金',
     fundAccountName: '广告充值金',
     operationType: '转账',
     businessType: '服务商转账（转入）',
     incomeType: '收入',
-    amount: 5000,
-    orderId: 'qdt-t-0-8907271-55779817-16171355696-48',
+    rechargeAmount: 5000,
+    revokedAmount: 0,
+    actualAmount: 5000,
+    status: '充值成功',
+    orderId: 'qdt-t-0-8907271-1798665300035692-02',
     remark:
-      '转账 - 由云南猎贝和众传媒发展有限公司（8907271）到 昆明佳运科技有限公司（55779817）',
+      '转账 - 由服务商账户转入 昆明佳运科技有限公司（1798665300035692）',
   },
   {
-    id: '09-2',
-    month: '09',
-    date: '2025-09-29 12:45:22',
+    id: '08-1',
+    date: '2025-08-05 09:42:59',
+    accountId: '1798665300035692',
+    accountName: '昆明佳运科技有限公司',
+    businessPlatform: '巨量引擎',
     recordType: '资金账户记录',
     fundType: '广告充值金',
     fundAccountName: '广告充值金',
     operationType: '转账',
     businessType: '服务商转账（转入）',
     incomeType: '收入',
-    amount: 5000,
-    orderId: 'qdt-t-0-8907271-55779817-16171355696-49',
+    rechargeAmount: 3000,
+    revokedAmount: 0,
+    actualAmount: 3000,
+    status: '充值成功',
+    orderId: 'qdt-t-0-8907271-1798665300035692-03',
     remark:
-      '转账 - 由云南猎贝和众传媒发展有限公司（8907271）到 昆明佳运科技有限公司（55779817）',
+      '转账 - 由服务商账户转入 昆明佳运科技有限公司（1798665300035692）',
+  },
+  {
+    id: '10-1',
+    date: '2025-10-04 10:04:00',
+    accountId: '1798665300035692',
+    accountName: '昆明佳运科技有限公司',
+    businessPlatform: '巨量引擎',
+    recordType: '资金账户记录',
+    fundType: '广告充值金',
+    fundAccountName: '广告充值金',
+    operationType: '转账',
+    businessType: '服务商转账（转入）',
+    incomeType: '收入',
+    rechargeAmount: 5000,
+    revokedAmount: 0,
+    actualAmount: 5000,
+    status: '充值成功',
+    orderId: 'qdt-t-0-8907271-1798665300035692-00',
+    remark:
+      '转账 - 由服务商账户转入 昆明佳运科技有限公司（1798665300035692）',
   },
 ]
 
@@ -439,7 +467,7 @@ export const reportTableHeaders = [
   '目标转化量',
 ]
 
-export const reportDateRangeText = '2025-04-30 至 2026-03-13'
+export const reportDateRangeText = '2025-05-01 至 2026-03-13'
 
 export const profileTabs: ProfileTabItem[] = [
   { key: 'account', label: '账户中心', active: true },
@@ -474,7 +502,7 @@ export const profileSections: ProfileSection[] = [
       },
       {
         label: '公司名称',
-        value: '昆明佳*******限公司',
+        value: '云南复印机研院',
       },
       {
         label: '营业执照注册号/三证合一统一社会信用代码',
@@ -486,7 +514,7 @@ export const profileSections: ProfileSection[] = [
       },
       {
         label: '法人姓名',
-        value: '黄**',
+        value: '钱**',
       },
       {
         label: '法人身份证件',
@@ -503,16 +531,15 @@ export const profileSections: ProfileSection[] = [
     items: [
       {
         label: '行业',
-        value: '招商加盟服务 家装建材招商加盟',
+        value: '计算机 办公设备租赁',
       },
       {
         label: '行业资质图片',
-        type: 'image-list',
+        value: '无',
       },
       {
         label: '行业资质详情',
-        type: 'warning',
-        value: '由于系统升级，请尽快将以下资料上传至上方对应位置',
+        value: '无',
       },
     ],
   },
@@ -521,7 +548,7 @@ export const profileSections: ProfileSection[] = [
     items: [
       {
         label: '账户联系人',
-        value: '王*男    158*****872',
+        value: '无',
       },
     ],
   },
