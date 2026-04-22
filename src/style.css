@@ -581,6 +581,7 @@ body {
   align-items: stretch;
   justify-content: flex-start;
   flex: 0 0 auto;
+  position: relative;
 }
 
 .overview-date-picker__text {
@@ -622,6 +623,80 @@ body {
   flex: 0 0 auto;
 }
 
+.overview-date-picker__editor,
+.report-date-trigger__editor,
+.finance-record-card__date-editor {
+  position: absolute !important;
+  inset: 0;
+  display: flex !important;
+  align-items: center;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.overview-date-picker__editor.el-date-editor,
+.overview-date-picker__editor.el-range-editor,
+.overview-date-picker__editor.el-input__wrapper,
+.report-date-trigger__editor.el-date-editor,
+.report-date-trigger__editor.el-range-editor,
+.report-date-trigger__editor.el-input__wrapper,
+.finance-record-card__date-editor.el-date-editor,
+.finance-record-card__date-editor.el-range-editor,
+.finance-record-card__date-editor.el-input__wrapper {
+  display: flex !important;
+  align-items: center;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.overview-date-picker__editor .el-input__wrapper,
+.report-date-trigger__editor .el-input__wrapper,
+.finance-record-card__date-editor .el-input__wrapper {
+  width: 100%;
+  height: 100%;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.overview-date-picker__editor .el-range__icon,
+.overview-date-picker__editor .el-range__close-icon,
+.report-date-trigger__editor .el-range__icon,
+.report-date-trigger__editor .el-range__close-icon,
+.finance-record-card__date-editor .el-range__icon,
+.finance-record-card__date-editor .el-range__close-icon {
+  display: none;
+}
+
+.overview-date-picker__text,
+.overview-date-picker__icon,
+.report-date-trigger__text,
+.report-date-trigger img,
+.finance-record-card__date span,
+.finance-record-card__date img {
+  pointer-events: none;
+}
+
 .muted-text,
 .hero-metric p,
 .hero-metric span,
@@ -650,12 +725,22 @@ body {
 .feedback-app .entry-button-wrapper {
   position: fixed;
   top: 84px;
-  right: -22px;
+  right: -16px;
   width: 73px;
   height: 73px;
-  cursor: default;
   visibility: visible;
   transform: rotate(-15deg);
+  transform-origin: center;
+}
+
+.feedback-app .entry-button-wrapper--collapsed {
+  position: fixed;
+  top: 84px;
+  right: -53px;
+  width: 73px;
+  height: 73px;
+  visibility: visible;
+  transform: rotate(-28deg);
   transform-origin: center;
 }
 
@@ -664,6 +749,9 @@ body {
   width: 60px;
   height: 60px;
   display: flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
   cursor: pointer;
 }
 
@@ -727,7 +815,7 @@ body {
   color: #fff;
   font-size: 14px;
   line-height: 16px;
-  cursor: default;
+  cursor: pointer;
 }
 
 .hero-card {
@@ -1616,6 +1704,8 @@ body {
 
 .report-date-trigger {
   position: relative;
+  display: inline-flex;
+  align-items: center;
   justify-content: flex-start;
   gap: 0;
   min-width: 198px;
@@ -1864,6 +1954,11 @@ body {
   overflow: hidden;
 }
 
+.report-trend-chart {
+  width: 100%;
+  height: 100%;
+}
+
 .report-empty-state {
   display: flex;
   flex-direction: column;
@@ -2012,6 +2107,8 @@ body {
 }
 
 .report-table__header,
+.report-table__summary,
+.report-table__row,
 .report-table__empty {
   display: grid;
   width: 1951px;
@@ -2024,6 +2121,17 @@ body {
   min-height: 41px;
   padding: 0 20px;
   background: #f7f9fc;
+}
+
+.report-table__summary {
+  min-height: 55px;
+  padding: 8px 20px 7px;
+  border-top: 1px solid #edf1f7;
+  color: #5f6572;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  background: #fff;
 }
 
 .report-table__cell--head {
@@ -2039,6 +2147,89 @@ body {
   color: #9096a3;
   font-size: 12px;
   line-height: 20px;
+}
+
+.report-table__row {
+  min-height: 55px;
+  padding: 8px 20px 7px;
+  border-bottom: 1px solid #edf1f7;
+  color: #313233;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.report-table__cell {
+  display: flex;
+  align-items: center;
+}
+
+.report-table__summary-label {
+  color: #313233;
+}
+
+.report-table__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 52px;
+  padding: 0 16px 0 12px;
+}
+
+.report-table__updated,
+.report-table__pagination {
+  display: inline-flex;
+  align-items: center;
+  color: #8e96a3;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.report-table__updated {
+  gap: 6px;
+}
+
+.report-table__updated-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  background: url("./assets/icons/report/report-help.svg") center / contain
+    no-repeat;
+  opacity: 0.72;
+}
+
+.report-table__pagination {
+  gap: 8px;
+}
+
+.report-table__pagination-size {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #f3f5f8;
+  color: #626365;
+}
+
+.report-table__pagination-control.el-pagination {
+  --el-pagination-button-color: #626365;
+  --el-pagination-hover-color: #296bef;
+  --el-pagination-bg-color: transparent;
+  --el-pagination-button-disabled-bg-color: transparent;
+  --el-pagination-button-disabled-color: #c7cfdd;
+  gap: 4px;
+}
+
+.report-table__pagination-control .btn-prev,
+.report-table__pagination-control .btn-next,
+.report-table__pagination-control .el-pager li {
+  min-width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: transparent;
 }
 
 .finance-page {
@@ -2416,10 +2607,13 @@ body {
 }
 
 .finance-record-card__date {
+  position: relative;
   display: inline-flex;
   align-items: center;
+  flex: 0 0 215px;
   gap: 11px;
   width: 215px;
+  min-width: 215px;
   height: 36px;
   padding: 0 10px;
   border: 0;
@@ -2434,6 +2628,9 @@ body {
 .finance-record-card__date span {
   flex: 1;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-align: left;
 }
 
@@ -2670,7 +2867,7 @@ body {
 }
 
 .finance-record-table {
-  width: 1862px;
+  width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -2710,13 +2907,13 @@ body {
 }
 
 .finance-record-table__empty td {
-  width: 1862px;
+  width: 100%;
   height: 59px;
   padding: 0;
 }
 
 .finance-record-table__empty-text {
-  width: 1862px;
+  width: 100%;
   color: #313233;
   font-size: 12px;
   line-height: 59px;
@@ -3158,7 +3355,6 @@ body {
 }
 
 .account-panel__summary-label {
-  min-width: 36px;
   color: #939599;
 }
 

@@ -456,7 +456,8 @@ export const profileSections: ProfileSection[] = [
     items: [
       {
         label: '公司/个人网站',
-        value: 'https://x.eqxiu.com/s/o60Tm6pC?eip=true',
+        value:
+          'https://www.chengzijianzhan.com/tetris/page/7485182185130606602?projectid=__PROJECT_ID__&promotionid=__PROMOTION_ID__&creativetype=__CTYPE__&clickid=__CLICKID__',
       },
     ],
   },
@@ -473,7 +474,7 @@ export const profileSections: ProfileSection[] = [
       },
       {
         label: '公司名称',
-        value: '云南小*******限公司',
+        value: '昆明佳*******限公司',
       },
       {
         label: '营业执照注册号/三证合一统一社会信用代码',

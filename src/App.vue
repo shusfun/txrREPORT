@@ -51,7 +51,7 @@ import {
   profileAuditStatusText,
   profileSections,
   profileTabs,
-  reportDateRangeText,
+  recentReportRows,
   reportSideNav,
   reportTableHeaders,
   reportToolbarChips,
@@ -78,15 +78,36 @@ type DashboardChartOption = ComposeOption<
 >;
 
 type ChartRef = ReturnType<typeof shallowRef<ECharts | null>>;
+type DateRangeValue = [string, string];
+type FinanceRecordDisplayRow = {
+  id: string;
+  rechargeTime: string;
+  accountId: string;
+  accountName: string;
+  businessPlatform: string;
+  rechargeAmount: number;
+  revokedAmount: number;
+  actualAmount: number;
+  status: string;
+};
 
 const selectedReportItem = ref("adgroup");
 const showRetiredModal = ref(false);
 const showOverviewAlert = ref(true);
+const showQFeedbackPopover = ref(true);
 const imagePreviewVisible = ref(false);
 const imagePreviewSrc = ref("");
 const imagePreviewTitle = ref("");
 const activePromotionIndex = ref(0);
 const heroMetricIcons = [accountMoneyIcon, accountCostIcon, accountBudgetIcon];
+const openQFeedbackPopover = () => {
+  showQFeedbackPopover.value = true;
+};
+
+const closeQFeedbackPopover = () => {
+  showQFeedbackPopover.value = false;
+};
+
 const overviewHourSlots = [
   "01:00",
   "02:00",
@@ -153,19 +174,14 @@ const overviewTrendSeries = [
 
 const overviewChartRef = ref<HTMLDivElement | null>(null);
 const overviewChart = shallowRef<ECharts | null>(null);
+const reportTrendChartRef = ref<HTMLDivElement | null>(null);
+const reportTrendChart = shallowRef<ECharts | null>(null);
 let promotionTimer: number | null = null;
 const selectedReportMetric = ref("曝光次数");
-const reportMetricCards = [
-  {
-    label: "曝光次数",
-    value: "0",
-  },
-  {
-    label: "花费",
-    value: "0.00",
-  },
-];
 const reportTableActions = ["自定义列", "下载", "版位细分"];
+const reportTablePage = ref(1);
+const reportTablePageSize = 20;
+const reportTableUpdatedAt = "2026-04-19 10:22";
 const financeRecordHeaders = [
   "充值时间",
   "账户ID",
@@ -176,14 +192,77 @@ const financeRecordHeaders = [
   "实际充值金额(元)",
   "充值状态",
 ];
-const financeRecordColumnWidths = [
-  228, 242, 120, 120, 100, 242, 100, 100, 248, 362,
-];
 const financeRecordMonthRangeMap: Record<string, string> = {
   "02": "2025-01-01 至 2025-02-28",
   "08": "2025-08-01 至 2025-08-31",
   "09": "2025-09-01 至 2025-09-30",
 };
+const augustFinanceRecordDisplayRow: FinanceRecordDisplayRow = {
+  id: "08-special",
+  rechargeTime: "2026-01-13 00:00:00",
+  accountId: "55779817",
+  accountName: "昆明佳运科技有限公司",
+  businessPlatform: "巨量引擎",
+  rechargeAmount: 3002.77,
+  revokedAmount: 0,
+  actualAmount: 3002.77,
+  status: "充值成功",
+};
+
+function parseDateRangeText(text: string): DateRangeValue {
+  const [start = "", end = ""] = text.split(" 至 ").map((item) => item.trim());
+  return [start, end];
+}
+
+function formatDateRangeText(range: DateRangeValue) {
+  const [start, end] = range;
+  return start && end ? `${start} 至 ${end}` : "";
+}
+
+function normalizeDateValue(value: string) {
+  return value.slice(0, 10);
+}
+
+function isDateInRange(value: string, range: DateRangeValue) {
+  const [start, end] = range;
+  const target = normalizeDateValue(value);
+  return (!start || target >= start) && (!end || target <= end);
+}
+
+function rangeHitsMonth(range: DateRangeValue, month: number) {
+  const [start, end] = range;
+  if (!start || !end) return false;
+
+  const startDate = new Date(`${start}T00:00:00`);
+  const endDate = new Date(`${end}T00:00:00`);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return false;
+  }
+
+  const startIndex = startDate.getFullYear() * 12 + startDate.getMonth();
+  const endIndex = endDate.getFullYear() * 12 + endDate.getMonth();
+  const targetMonthIndex = month - 1;
+
+  for (let current = startIndex; current <= endIndex; current += 1) {
+    if (current % 12 === targetMonthIndex) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+const overviewDateRange = ref<DateRangeValue>([
+  "2025-04-30",
+  "2026-03-13",
+]);
+const reportDateRange = ref<DateRangeValue>([
+  recentReportRows[0]?.date ?? "",
+  recentReportRows[recentReportRows.length - 1]?.date ?? "",
+]);
+const financeRecordDateRange = ref<DateRangeValue>(
+  parseDateRangeText(financeRecordMonthRangeMap["02"]),
+);
 
 const currentPage = computed<AppPage>(() => {
   const routeName = router.currentRoute.value.name;
@@ -201,14 +280,42 @@ const financeRecordMonth = computed(() => {
   return "02";
 });
 
+watch(
+  financeRecordMonth,
+  (month) => {
+    financeRecordDateRange.value = parseDateRangeText(
+      financeRecordMonthRangeMap[month] ?? financeRecordMonthRangeMap["02"],
+    );
+  },
+  { immediate: true },
+);
+
 const financeRecordRows = computed(() =>
-  financeAccountRecords.filter(
-    (item) => item.month === financeRecordMonth.value,
+  financeAccountRecords.filter((item) =>
+    isDateInRange(item.date, financeRecordDateRange.value),
   ),
 );
 
-const financeRecordDateRangeText = computed(
-  () => financeRecordMonthRangeMap[financeRecordMonth.value] ?? "",
+const financeRecordDisplayRows = computed<FinanceRecordDisplayRow[]>(() => {
+  if (rangeHitsMonth(financeRecordDateRange.value, 8)) {
+    return [augustFinanceRecordDisplayRow];
+  }
+
+  return financeDailyRows.map((item) => ({
+      id: String(item.id),
+      rechargeTime: item.rechargeTime,
+      accountId: item.accountId,
+      accountName: item.accountName,
+      businessPlatform: item.businessPlatform,
+      rechargeAmount: Number(item.balance),
+      revokedAmount: 0,
+      actualAmount: Number(item.balance),
+      status: item.status,
+    }));
+});
+
+const financeRecordDateRangeText = computed(() =>
+  formatDateRangeText(financeRecordDateRange.value),
 );
 
 const financeRecordFilters = computed(() => {
@@ -242,8 +349,35 @@ const financeRecordFilters = computed(() => {
 });
 
 const financeRecordIncomeTotal = computed(() =>
-  financeRecordRows.value.reduce((sum, item) => sum + item.amount, 0),
+  financeRecordDisplayRows.value.reduce((sum, item) => sum + item.actualAmount, 0),
 );
+
+const reportRows = computed(() =>
+  recentReportRows.filter((item) => isDateInRange(item.date, reportDateRange.value)),
+);
+
+const reportTableRows = computed(() => {
+  const start = (reportTablePage.value - 1) * reportTablePageSize;
+  return reportRows.value.slice(start, start + reportTablePageSize);
+});
+
+const reportSummaryRow = computed(() => ({
+  total: reportRows.value.length,
+  impressions: reportRows.value.reduce((sum, item) => sum + item.impressions, 0),
+  clicks: reportRows.value.reduce((sum, item) => sum + item.clicks, 0),
+  cost: reportRows.value.reduce((sum, item) => sum + item.cost, 0),
+}));
+
+const reportMetricCards = computed(() => [
+  {
+    label: "曝光次数",
+    value: formatNumber(reportSummaryRow.value.impressions),
+  },
+  {
+    label: "花费",
+    value: formatCurrency(reportSummaryRow.value.cost),
+  },
+]);
 
 const activeTopKey = computed(() => {
   if (currentPage.value === "report") return "report";
@@ -306,7 +440,13 @@ const profileSectionsResolved = computed(() =>
   })),
 );
 
-const overviewDateRangeText = "2025-04-30 至 2026-03-13";
+const overviewDateRangeText = computed(() =>
+  formatDateRangeText(overviewDateRange.value),
+);
+
+const reportDateRangeText = computed(() =>
+  formatDateRangeText(reportDateRange.value),
+);
 
 const overviewXAxisLabels = computed(() => {
   const now = new Date();
@@ -324,6 +464,10 @@ function formatCurrency(value: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
+}
+
+function formatShortDate(value: string) {
+  return value.slice(5);
 }
 
 function openRetiredModal() {
@@ -545,19 +689,115 @@ function renderOverviewChart() {
   });
 }
 
+function renderReportTrendChart() {
+  ensureChart(reportTrendChartRef.value, reportTrendChart, {
+    color: ["#7399ff", "#f3b050"],
+    animation: false,
+    tooltip: {
+      trigger: "axis",
+      backgroundColor: "rgba(255, 255, 255, 0.96)",
+      borderColor: "#dfe1e6",
+      borderWidth: 1,
+      textStyle: {
+        color: "#313233",
+        fontSize: 12,
+      },
+    },
+    grid: {
+      top: 18,
+      left: 24,
+      right: 24,
+      bottom: 24,
+      containLabel: false,
+    },
+    xAxis: {
+      type: "category",
+      boundaryGap: false,
+      data: reportRows.value.map((item) => formatShortDate(item.date)),
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { show: false },
+    },
+    yAxis: [
+      {
+        type: "value",
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { show: false },
+        splitLine: { show: false },
+        min: 0,
+      },
+      {
+        type: "value",
+        position: "right",
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { show: false },
+        splitLine: { show: false },
+        min: 0,
+      },
+    ],
+    series: [
+      {
+        name: "曝光次数",
+        type: "line",
+        yAxisIndex: 0,
+        smooth: 0.24,
+        showSymbol: false,
+        lineStyle: {
+          width: 3,
+          color: "#7399ff",
+        },
+        itemStyle: {
+          color: "#7399ff",
+        },
+        data: reportRows.value.map((item) => item.impressions),
+      },
+      {
+        name: "花费",
+        type: "line",
+        yAxisIndex: 1,
+        smooth: 0.24,
+        showSymbol: false,
+        lineStyle: {
+          width: 3,
+          color: "#f3b050",
+        },
+        itemStyle: {
+          color: "#f3b050",
+        },
+        data: reportRows.value.map((item) => item.cost),
+      },
+    ],
+  });
+}
+
 function renderVisibleCharts() {
   if (currentPage.value === "overview") {
     renderOverviewChart();
+    return;
+  }
+
+  if (currentPage.value === "report") {
+    renderReportTrendChart();
   }
 }
 
 function resizeCharts() {
   overviewChart.value?.resize();
+  reportTrendChart.value?.resize();
 }
 
 watch(currentPage, async () => {
   await nextTick();
   renderVisibleCharts();
+});
+
+watch(reportRows, async () => {
+  reportTablePage.value = 1;
+  if (currentPage.value !== "report") return;
+  await nextTick();
+  renderReportTrendChart();
 });
 
 onMounted(async () => {
@@ -571,6 +811,7 @@ onBeforeUnmount(() => {
   clearPromotionTimer();
   window.removeEventListener("resize", resizeCharts);
   overviewChart.value?.dispose();
+  reportTrendChart.value?.dispose();
 });
 </script>
 
@@ -615,6 +856,7 @@ onBeforeUnmount(() => {
             type="button"
             class="header-action-btn header-action-btn--feedback"
             title="反馈"
+            @click="openRetiredModal"
           >
             <img
               :src="headerFeedbackIcon"
@@ -622,7 +864,12 @@ onBeforeUnmount(() => {
               class="header-action-btn__icon"
             />
           </button>
-          <button type="button" class="header-pill-action" title="通知">
+          <button
+            type="button"
+            class="header-pill-action"
+            title="通知"
+            @click="openRetiredModal"
+          >
             <span class="header-pill-action__icon-wrap">
               <img
                 :src="headerBellIcon"
@@ -636,6 +883,7 @@ onBeforeUnmount(() => {
             type="button"
             class="header-pill-action header-pill-action--fund"
             title="资金"
+            @click="openRetiredModal"
           >
             <span class="header-pill-action__icon-wrap">
               <img
@@ -645,7 +893,12 @@ onBeforeUnmount(() => {
               />
             </span>
           </button>
-          <button type="button" class="header-link-action" title="帮助">
+          <button
+            type="button"
+            class="header-link-action"
+            title="帮助"
+            @click="openRetiredModal"
+          >
             <img
               :src="headerHelpIcon"
               alt=""
@@ -656,6 +909,7 @@ onBeforeUnmount(() => {
             type="button"
             class="header-link-action header-link-action--mobile"
             title="小程序和公众号"
+            @click="openRetiredModal"
           >
             <img
               :src="headerMobileIcon"
@@ -752,7 +1006,11 @@ onBeforeUnmount(() => {
                   >
                     账户中心
                   </button>
-                  <button type="button" class="account-panel__footer-btn">
+                  <button
+                    type="button"
+                    class="account-panel__footer-btn"
+                    @click="openExternalPlatform"
+                  >
                     退出登录
                   </button>
                 </div>
@@ -1072,6 +1330,19 @@ onBeforeUnmount(() => {
                       alt=""
                     />
                   </div>
+                  <el-date-picker
+                    v-model="overviewDateRange"
+                    class="overview-date-picker__editor"
+                    type="daterange"
+                    range-separator="至"
+                    format="YYYY-MM-DD"
+                    value-format="YYYY-MM-DD"
+                    start-placeholder="开始日期"
+                    end-placeholder="结束日期"
+                    :editable="false"
+                    :clearable="false"
+                    unlink-panels
+                  />
                 </div>
               </div>
             </template>
@@ -1178,16 +1449,25 @@ onBeforeUnmount(() => {
                         aria-hidden="true"
                       ></span>
                     </button>
-                    <button
-                      type="button"
-                      class="report-date-trigger"
-                      @click="openRetiredModal"
-                    >
+                    <div class="report-date-trigger">
                       <img :src="reportDateIcon" alt="" />
                       <span class="report-date-trigger__text">{{
                         reportDateRangeText
                       }}</span>
-                    </button>
+                      <el-date-picker
+                        v-model="reportDateRange"
+                        class="report-date-trigger__editor"
+                        type="daterange"
+                        range-separator="至"
+                        format="YYYY-MM-DD"
+                        value-format="YYYY-MM-DD"
+                        start-placeholder="开始日期"
+                        end-placeholder="结束日期"
+                        :editable="false"
+                        :clearable="false"
+                        unlink-panels
+                      />
+                    </div>
                     <button
                       type="button"
                       class="report-chip report-chip--plain"
@@ -1271,9 +1551,14 @@ onBeforeUnmount(() => {
                     ></span>
                     <span>展开趋势图</span>
                   </button>
+                  <div
+                    v-if="reportRows.length"
+                    ref="reportTrendChartRef"
+                    class="report-trend-chart"
+                  ></div>
                 </div>
 
-                <div class="report-empty-state">
+                <div v-if="!reportRows.length" class="report-empty-state">
                   <div class="report-empty-state__icon" aria-hidden="true">
                     <span class="report-empty-state__ring"></span>
                     <span class="report-empty-state__dot"></span>
@@ -1328,7 +1613,66 @@ onBeforeUnmount(() => {
                       {{ header }}
                     </div>
                   </div>
-                  <div class="report-table__empty">抱歉，暂无相关数据记录</div>
+                  <template v-if="reportRows.length">
+                    <div
+                      v-for="row in reportTableRows"
+                      :key="row.date"
+                      class="report-table__row"
+                    >
+                      <div class="report-table__cell">{{ row.date }}</div>
+                      <div class="report-table__cell">竞价-展示广告</div>
+                      <div class="report-table__cell">
+                        {{ formatNumber(row.impressions) }}
+                      </div>
+                      <div class="report-table__cell">
+                        {{ formatNumber(row.clicks) }}
+                      </div>
+                      <div class="report-table__cell">
+                        {{ formatCurrency(row.cost) }}
+                      </div>
+                      <div class="report-table__cell">0</div>
+                    </div>
+                    <div class="report-table__summary">
+                      <div class="report-table__cell report-table__summary-label">
+                        总计：({{ reportSummaryRow.total }}条数据)
+                      </div>
+                      <div class="report-table__cell"></div>
+                      <div class="report-table__cell">
+                        {{ formatNumber(reportSummaryRow.impressions) }}
+                      </div>
+                      <div class="report-table__cell">
+                        {{ formatNumber(reportSummaryRow.clicks) }}
+                      </div>
+                      <div class="report-table__cell">
+                        {{ formatCurrency(reportSummaryRow.cost) }}
+                      </div>
+                      <div class="report-table__cell">0</div>
+                    </div>
+                  </template>
+                  <div v-else class="report-table__empty">抱歉，暂无相关数据记录</div>
+                </div>
+
+                <div v-if="reportRows.length" class="report-table__footer">
+                  <div class="report-table__updated">
+                    <span class="report-table__updated-icon" aria-hidden="true"></span>
+                    <span>数据最后更新时间：{{ reportTableUpdatedAt }}</span>
+                  </div>
+                  <div class="report-table__pagination">
+                    <span>共 {{ reportRows.length }} 条，每页显示</span>
+                    <span class="report-table__pagination-size">{{
+                      reportTablePageSize
+                    }}</span>
+                    <span>条</span>
+                    <el-pagination
+                      v-model:current-page="reportTablePage"
+                      class="report-table__pagination-control"
+                      layout="prev, pager, next"
+                      :page-size="reportTablePageSize"
+                      :total="reportRows.length"
+                      :pager-count="5"
+                      :small="true"
+                    />
+                  </div>
                 </div>
               </section>
             </div>
@@ -1520,10 +1864,23 @@ onBeforeUnmount(() => {
                   </ul>
                   <div class="finance-record-card__head-right">
                     <span class="finance-record-card__date-label">日期：</span>
-                    <button type="button" class="finance-record-card__date">
+                    <div class="finance-record-card__date">
                       <span>{{ financeRecordDateRangeText }}</span>
                       <img :src="spauiDateIcon" alt="" aria-hidden="true" />
-                    </button>
+                      <el-date-picker
+                        v-model="financeRecordDateRange"
+                        class="finance-record-card__date-editor"
+                        type="daterange"
+                        range-separator="至"
+                        format="YYYY-MM-DD"
+                        value-format="YYYY-MM-DD"
+                        start-placeholder="开始日期"
+                        end-placeholder="结束日期"
+                        :editable="false"
+                        :clearable="false"
+                        unlink-panels
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1598,13 +1955,6 @@ onBeforeUnmount(() => {
                   <div class="finance-record-table-wrap">
                     <div class="finance-record-table-scroll">
                       <table class="finance-record-table">
-                        <colgroup>
-                          <col
-                            v-for="(width, index) in financeRecordColumnWidths"
-                            :key="index"
-                            :style="{ width: `${width}px` }"
-                          />
-                        </colgroup>
                         <thead>
                           <tr>
                             <th
@@ -1619,7 +1969,7 @@ onBeforeUnmount(() => {
                         </thead>
                         <tbody>
                           <tr
-                            v-for="item in financeDailyRows"
+                            v-for="item in financeRecordDisplayRows"
                             :key="item.id"
                             class="finance-record-table__row"
                           >
@@ -1645,17 +1995,17 @@ onBeforeUnmount(() => {
                             </td>
                             <td>
                               <div class="finance-record-table__body-cell">
-                                {{ item.balance }}
+                                {{ formatCurrency(item.rechargeAmount) }}
                               </div>
                             </td>
                             <td>
                               <div class="finance-record-table__body-cell">
-                                0.00
+                                {{ formatCurrency(item.revokedAmount) }}
                               </div>
                             </td>
                             <td>
                               <div class="finance-record-table__body-cell">
-                                {{ item.balance }}
+                                {{ formatCurrency(item.actualAmount) }}
                               </div>
                             </td>
                             <td>
@@ -1682,7 +2032,7 @@ onBeforeUnmount(() => {
                             </td> -->
                           </tr>
                           <tr
-                            v-if="!financeRecordRows.length"
+                            v-if="!financeRecordDisplayRows.length"
                             class="finance-record-table__empty"
                           >
                             <td :colspan="financeRecordHeaders.length">
@@ -1697,7 +2047,7 @@ onBeforeUnmount(() => {
                   </div>
 
                   <div
-                    v-if="financeRecordRows.length"
+                    v-if="financeRecordDisplayRows.length"
                     class="finance-record-summary"
                   >
                     <span>本页总计数据:</span>
@@ -1712,11 +2062,11 @@ onBeforeUnmount(() => {
                   </div>
 
                   <div
-                    v-if="financeRecordRows.length"
+                    v-if="financeRecordDisplayRows.length"
                     class="finance-record-pagination"
                   >
                     <span
-                      >共 {{ financeRecordRows.length }} 条记录，每页显示</span
+                      >共 {{ financeRecordDisplayRows.length }} 条记录，每页显示</span
                     >
                     <span class="finance-record-pagination__size">20</span>
                     <span>条 共 1 页</span>
@@ -1880,10 +2230,19 @@ onBeforeUnmount(() => {
       </main>
     </div>
 
-    <div id="q-feedback-app" class="feedback-app" aria-hidden="true">
-      <div class="entry-pop-wrapper">
-        <div class="entry-button-wrapper">
-          <div class="entry-button">
+    <div id="q-feedback-app" class="feedback-app">
+        <div class="entry-pop-wrapper">
+        <div
+          class="entry-button-wrapper"
+          :class="{ 'entry-button-wrapper--collapsed': !showQFeedbackPopover }"
+        >
+          <button
+            type="button"
+            class="entry-button"
+            aria-label="打开妙问提示"
+            :aria-expanded="showQFeedbackPopover"
+            @click="openQFeedbackPopover"
+          >
             <img
               class="icon-feed-question"
               :src="qFeedbackEntryLogo"
@@ -1891,13 +2250,14 @@ onBeforeUnmount(() => {
               height="60"
               alt=""
             />
-          </div>
+          </button>
         </div>
-        <div class="entry-popover">
+        <div v-if="showQFeedbackPopover" class="entry-popover">
           <button
             type="button"
             class="entry-popover-close"
             aria-label="关闭妙问提示"
+            @click="closeQFeedbackPopover"
           >
             ×
           </button>
