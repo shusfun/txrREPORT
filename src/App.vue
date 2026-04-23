@@ -21,6 +21,7 @@ import {
   watch,
 } from "vue";
 import router from "./router";
+import LoginView from "./views/LoginView.vue";
 import businessLicenseImage from "./assets/图片2.png";
 import idBackImage from "./assets/2d7688680e51f0fb0e281d591d35d251.jpg";
 import idFrontImage from "./assets/10cd20478d3bf70c98e086cb115cce78.jpg";
@@ -231,9 +232,21 @@ const financeRecordDateRange = ref<DateRangeValue>(
   resolveDateRange(financeAccountRecords.map((item) => item.date)),
 );
 
+const isLoginPage = computed(() => router.currentRoute.value.name === "login");
 const currentPage = computed<AppPage>(() => {
   const routeName = router.currentRoute.value.name;
-  return typeof routeName === "string" ? (routeName as AppPage) : "overview";
+
+  if (
+    routeName === "overview" ||
+    routeName === "report" ||
+    routeName === "financeInfo" ||
+    routeName === "financeRecords" ||
+    routeName === "profile"
+  ) {
+    return routeName;
+  }
+
+  return "overview";
 });
 
 const financeRecordRows = computed(() =>
@@ -741,7 +754,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="page-shell">
+  <LoginView v-if="isLoginPage" />
+  <div v-else class="page-shell">
     <div class="page-surface">
       <header class="app-header">
         <div class="brand-side">
@@ -1034,9 +1048,6 @@ onBeforeUnmount(() => {
                 <div class="hero-metric__content">
                   <div class="hero-metric__title-row">
                     <p>{{ item.label }}</p>
-                    <span v-if="index === 0" class="hero-metric__status"
-                      >充足｜还可消耗7天以上</span
-                    >
                   </div>
                   <div class="hero-metric__value-row">
                     <strong>{{ item.value }}</strong>
@@ -2187,10 +2198,10 @@ onBeforeUnmount(() => {
           >
             ×
           </button>
-          <div class="entry-popover-title">👀 Hi，我是腾讯广告妙问</div>
-          <div class="entry-popover-desc">
-            家装建材招商加盟行业同行都在投这些素材，立即查看！🚗
-          </div>
+          <div class="entry-popover-title">👀 Hi，我是广告妙问</div>
+        <div class="entry-popover-desc">
+            计算机办公设备租赁行业同行都在投这些素材，立即查看！🚗
+        </div>
         </div>
       </div>
     </div>

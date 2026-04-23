@@ -1,5 +1,6 @@
 import { defineComponent, h } from "vue";
 import { createRouter, createWebHistory } from "vue-router";
+import { isAuthenticated } from "./auth";
 import type { AppPage } from "./mockData";
 
 const RouteStateBridge = defineComponent({
@@ -10,6 +11,14 @@ const RouteStateBridge = defineComponent({
 });
 
 const routes = [
+  {
+    path: "/login",
+    name: "login",
+    component: RouteStateBridge,
+    meta: {
+      public: true,
+    },
+  },
   {
     path: "/",
     redirect: "/overview",
@@ -66,6 +75,38 @@ const router = createRouter({
   scrollBehavior() {
     return { top: 0 };
   },
+});
+
+function resolveRedirectPath(value: unknown) {
+  if (typeof value !== "string") {
+    return "/overview";
+  }
+
+  if (!value.startsWith("/") || value.startsWith("//") || value.startsWith("/login")) {
+    return "/overview";
+  }
+
+  return value;
+}
+
+router.beforeEach((to) => {
+  const authenticated = isAuthenticated();
+  const isPublicRoute = to.meta.public === true;
+
+  if (!authenticated && !isPublicRoute) {
+    return {
+      name: "login",
+      query: {
+        redirect: to.fullPath,
+      },
+    };
+  }
+
+  if (authenticated && to.name === "login") {
+    return resolveRedirectPath(to.query.redirect);
+  }
+
+  return true;
 });
 
 export default router;
