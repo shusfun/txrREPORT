@@ -2116,9 +2116,9 @@ body {
 .report-table__row,
 .report-table__empty {
   display: grid;
-  width: 1951px;
-  min-width: 1951px;
-  grid-template-columns: 320px 700px 232px 232px 232px 235px;
+  width: 1716px;
+  min-width: 1716px;
+  grid-template-columns: 320px 700px 232px 232px 232px;
   align-items: center;
 }
 

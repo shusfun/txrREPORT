@@ -1,5 +1,31 @@
-# Vue 3 + TypeScript + Vite
+# my-vue
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+## 常用命令
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+```bash
+npm install
+npm run dev
+npm run build
+```
+
+## xlsx 数据同步
+
+项目报表页使用的数据文件是 `src/ts/excelReportRows.ts`，源数据文件是 `docs/副本广告数据昆明.xlsx`。
+
+当 `xlsx` 更新后，执行下面的命令即可重新生成页面使用的数据文件：
+
+```bash
+npm run sync:excel-report-rows
+```
+
+该命令会：
+
+- 读取 `docs/副本广告数据昆明.xlsx`
+- 规范化日期、数值和文本字段
+- 覆盖生成 `src/ts/excelReportRows.ts`
+
+建议同步后再执行一次构建验证：
+
+```bash
+npm run build
+```

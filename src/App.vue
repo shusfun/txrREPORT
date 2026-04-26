@@ -1561,7 +1561,6 @@ onBeforeUnmount(() => {
                       <div class="report-table__cell">
                         {{ formatCurrency(row.cost) }}
                       </div>
-                      <div class="report-table__cell">0</div>
                     </div>
                     <div class="report-table__summary">
                       <div class="report-table__cell report-table__summary-label">
@@ -1577,7 +1576,6 @@ onBeforeUnmount(() => {
                       <div class="report-table__cell">
                         {{ formatCurrency(reportSummaryRow.cost) }}
                       </div>
-                      <div class="report-table__cell">0</div>
                     </div>
                   </template>
                   <div v-else class="report-table__empty">抱歉，暂无相关数据记录</div>

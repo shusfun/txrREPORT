@@ -1,5 +1,4 @@
 import newsHeroLive1 from "./assets/news-hero-live.jpg"
-import newsHeroLive2 from "./assets/news-hero-live-2.jpg"
 import newsHeroLive3 from "./assets/news-hero-live-3.jpg"
 import newsHeroLive4 from "./assets/news-hero-live-4.jpg"
 import newsHeroLive5 from "./assets/news-hero-live-5.jpg"
@@ -304,11 +303,6 @@ export const promotionSlides: PromotionSlide[] = [
     imageSrc: newsHeroLive1,
   },
   {
-    title: '广告专用视频号支持快捷创建；腾讯平台与内容媒体支持九图创意形式',
-    href: 'https://e.qq.com/latestnews/detail?pid=12856&bbx_referer=17',
-    imageSrc: newsHeroLive2,
-  },
-  {
     title: '产品速递VOL.105：支持视频高光帧分析；在线预览配置方式升级为微信扫码形式',
     href: 'https://e.qq.com/latestnews/detail?pid=12822&bbx_referer=17',
     imageSrc: newsHeroLive3,
@@ -464,7 +458,6 @@ export const reportTableHeaders = [
   '曝光次数',
   '点击次数',
   '花费',
-  '目标转化量',
 ]
 
 export const reportDateRangeText = '2025-05-01 至 2026-03-13'
@@ -506,7 +499,7 @@ export const profileSections: ProfileSection[] = [
       },
       {
         label: '营业执照注册号/三证合一统一社会信用代码',
-        value: '9****************K',
+        value: '****************',
       },
       {
         label: '公司所在省市',
@@ -522,7 +515,7 @@ export const profileSections: ProfileSection[] = [
       },
       {
         label: '法人身份证号',
-        value: '5****************0',
+        value: '****************',
       },
     ],
   },

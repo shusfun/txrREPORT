@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "sync:excel-report-rows": "node scripts/sync-excel-report-rows.cjs",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
   },
